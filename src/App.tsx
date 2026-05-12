@@ -10,6 +10,7 @@ import ITMonitoring from './pages/ITMonitoring';
 import CourtClerkDashboard from './pages/CourtClerkDashboard';
 import AdminRBAC from './pages/AdminRBAC';
 import DefendantResponse from './pages/DefendantResponse';
+import SettlementOffer from './pages/SettlementOffer';
 
 function AppRoutes() {
   const { isAuthenticated, user } = useAuth();
@@ -30,6 +31,7 @@ function AppRoutes() {
       
       {/* Shared Screens */}
       <Route path="/case/:id" element={<CaseStatusTimeline />} />
+      <Route path="/settlement/:id" element={<SettlementOffer />} />
       
       {/* Role Specific Dashboards */}
       <Route path="/dashboard" element={

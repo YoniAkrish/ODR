@@ -12,7 +12,8 @@ import {
   ChevronLeft,
   AlertCircle,
   Building2,
-  UserCircle
+  UserCircle,
+  RefreshCcw
 } from 'lucide-react';
 
 const steps = [
@@ -35,6 +36,44 @@ export default function NewCaseWizard() {
     disputeDescription: '',
     claimAmount: '',
   });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    try {
+      const webhookUrl = import.meta.env.VITE_MAKE_WEBHOOK_URL;
+      
+      if (!webhookUrl) {
+        throw new Error('Webhook URL not configured');
+      }
+
+      const response = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...formData,
+          createdAt: new Date().toISOString(),
+          status: 'NEW',
+          platform: 'ODR_SYSTEM_POC'
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send data to webhook');
+      }
+
+      alert('Claim Submitted Successfully! Data sent to Make.com');
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Submission error:', error);
+      alert('Error submitting claim. Please check the logs or webhook configuration.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const nextStep = () => setCurrentStep(prev => Math.min(prev + 1, steps.length));
   const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 1));
@@ -271,13 +310,21 @@ export default function NewCaseWizard() {
               </button>
             ) : (
               <button 
-                onClick={() => {
-                  alert('Claim Submitted Successfully!');
-                  navigate('/dashboard');
-                }}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white px-12 py-3 rounded-xl font-bold transition-all shadow-lg shadow-emerald-100"
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                className={cn(
+                  "bg-emerald-600 hover:bg-emerald-700 text-white px-12 py-3 rounded-xl font-bold transition-all shadow-lg shadow-emerald-100 flex items-center gap-2",
+                  isSubmitting && "opacity-70 cursor-not-allowed"
+                )}
               >
-                Submit Claim
+                {isSubmitting ? (
+                  <>
+                    <RefreshCcw className="w-5 h-5 animate-spin" />
+                    Submitting...
+                  </>
+                ) : (
+                  'Submit Claim'
+                )}
               </button>
             )}
           </div>
